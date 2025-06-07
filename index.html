@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body {
+            background-color: #444;
+            padding: 0 10px;
+            margin: 0;
+            min-width: fit-content;
+        }
+        .page-container {
+            margin: 10px auto;
+            width: fit-content;
+        }
+        .page {
+            overflow: hidden;
+            position: relative;
+            background-color: white;
+        }
+        .annotations-container {
+            position: absolute;
+            pointer-events: none;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 3;
+        }
+        .annotations-container > div {
+            position: absolute; pointer-events: auto; -webkit-user-select: none;
+        }
+        .annotations-container > div:hover {
+            background-color: rgba(255, 255, 0, 0.25);
+            cursor: pointer;
+        }
+    </style>
+    <style class="shared-css" type="text/css" >
+.t {
+	transform-origin: bottom left;
+	z-index: 2;
+	position: absolute;
+	white-space: pre;
+	overflow: visible;
+	line-height: 1.5;
+}
+.text-container {
+	white-space: pre;
+}
+@supports (-webkit-touch-callout: none) {
+	.text-container {
+		white-space: normal;
+	}
+}
+</style>
+<style id="fonts4" type="text/css" >
+
+@font-face {
+	font-family: LiberationSans_4o;
+src: url(data:application/font-woff;charset=utf-8;base64,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) format("woff");
+}
+
+</style>
+<style type="text/css" >
+
+.s0{font-size:17px;font-family:LiberationSans_4o;color:#000;}
+</style>
+<script id="metadata" type="application/json">{"pagecount":4,"title":"","author":"","subject":"","keywords":"","creator":"Writer","producer":"LibreOffice 24.8.2.1 (X86_64) / LibreOffice Community","creationdate":"D:20250607101049+02'00'","moddate":"","trapped":"","fileName":"Index.docx","bounds":[[935,1210],[935,1210],[935,1210],[935,1210]],"bookmarks":[],"thumbnailType":"","pageType":"html","pageLabels":[]}</script>
+<script id="annotations" type="application/json">{"pages":[]}</script>
+<script>window.addEventListener('DOMContentLoaded',function(){const el=document.createElement("div");el.innerHTML=atob("PGRpdiBzdHlsZT0icG9zaXRpb246Zml4ZWQ7cmlnaHQ6MzBweDtib3R0b206MTVweDtib3JkZXItcmFkaXVzOjVweDtib3gtc2hhZG93OiAxcHggMXB4IDRweCByZ2JhKDEyMCwxMjAsMTIwLDAuNSk7bGluZS1oZWlnaHQ6MDtvdmVyZmxvdzpoaWRkZW47Ij48YSBocmVmPSJodHRwczovL3d3dy5pZHJzb2x1dGlvbnMuY29tL29ubGluZS13b3JkLXRvLWh0bWwtY29udmVydGVyIiByZWw9Im5vZm9sbG93IiB0YXJnZXQ9Il9ibGFuayI+PGltZyBhbHQ9IkNyZWF0ZWQgd2l0aCBCdWlsZFZ1IiBzdHlsZT0iYm9yZGVyOjA7IiBzcmM9ImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBSllBQUFBdENBTUFBQUI3MG1KbUFBQUNQVkJNVkVYLy8vLysvdjBkSFJ2NysvdjgvUHlJaUlmYjI5di9iMG41d3k3MzkvZjR3aXY0d1NscWFtcng4ZkcwdExQNHZ5WGw1ZVhnNE9EQ3dzSjRlSGR1Ym0zVDA5UDR3Q2YzdmlQZTN0MnhzYkZnWUYvNHdpMzN2Qi9yNit1aG9hQ0VoSU9CZ1lCeGNYQlpXVmZvNk9oUlVWRkRRMElwS1NqajQrTm9hR2RiVzFvbEpTUDN1Qlh6OC9QS3lzcGRYVjFKU1VjOFBEdjJ0USs2dXJxNHVMZGtaR1JVVkZQL2NFcjJ1aG42K3ZxcXFxcW1wcVpMUzBwQlFUODRPRGI1K2ZuMTlmWFgxOWZIeDhlK3ZyMmVucDZhbXBxWGw1ZU9qbzU4Zkh0MWRYVnpjM05XVmxaSFIwWGxueDM0dXh6Ky9mcnQ3ZTMrK2V2aTR1TFkyTmpRME5ERnhjV3VycTJVbEpSUFQwNGdJQi9uNStmT3pzN0J3Y0g4NTYraW9xS0tpb241MG12K256ejltVHMwTkRMNHdqSDR2aUhub3lIbm9CLzJ1aHZqblJqZ21CUCsvdnorOE16TXpNejk3Y1gvd0svODVxaWpvNk9Sa1pIL2JVcitxajMrcFQzOGp6VXRMU3p1cWgvMXNnais5K1RhMnRyLzI5TC8xc3ovekwvNzNJYUdob1g2Mm9INTBGMzV6RTcvYzA3K2wwSDV5RUQ5a1VEK2RrRC9zRHozeER2OGtqbi93RGoxdVNULysvcisrdkgvOU9ycTZ1ci83T2YvNXQvKzg5Zjg2cjM4NDUveDBwai9wby80eTRML2tYVDUwV1AvZzJINXlVVC9uMFQrYjBQL3REdit0emZ5cERMOGhUTDRzaTdycENJYkd4dnlyeGIvOXZQKzZ0ajk4dFAvMWNyNDU4bisyOFgrM2NQOTRxMy91cWYvdUtUKzE1di9ycGo3NEpYL25JTDlwNEQ1MVh6NjFXL3N3R3Y3cm1UK3RtUCtrMkg5cDFQbXFUdnpxQzZaVVdMMEFBQUdYVWxFUVZSWXcrMlloMTlTVVJUSHo3czg1WUdBVEJOSUJRRVZBeVFRVXlRMTl5cHpsWmxsYXBxMmQ3YjMzbnZ2dmZjZWYxdm52aWRGRmlPclQzMCsrZnZvdS9kdzEvZWRjKzY5ZklCUmplcS9GQU0vcS9nNEVNRWYxbno0SjdFNnB3SXdJOGRpWWd3SU04eUtOdmJDemdYWTRSZThsYW53ZXpKeENvYmgvN0Vtck12Q1YzdFdLaTJEVkFVZW9DcjNSM0Q2Sm83cndMNGp4bHBxelRMWFZuNDNmK1BDVU11d05OUzdGWDVITTlZTU15RzhPamlPMnpSU2I3R2djSy9EMHNIS1U5U1pvUFNrQUJRN25RQ1Fwbld3WVBGWXFEdWJVM0piRUVPT2RRbEFBeXVCU3ExU1ZHVExkRnJDK3VNNDE4TnhXNmVHdGs5aFl2ZVd6Y2w3UU9Lck5hUjZDbVcyaGFETjlhV0Q0cWJiS3ZlaVBRbVdXYXRzMHhGWGJpc0Nsd2JhZlpiY1NXM2Q2ZTNLREUzV3hKSndYRk8zY2FnTDN5WVlFeXRXUzdxRUwyZGs2MENIaTgvV1VxdFd6ZFlXbzIyQlpUVmVxd2owTGtBdjVzaWJNdXdnbTlXY0pkRmlpQXNNREdncmdRMnpTMTV6bk5GbzdGbnlsZWdNWll3TlM1OHJkQ3kxQTB6TE1NWFovVkJRWXk1c2pMZGlTbWVZTnJ2OHVXcUFzaG9BeUhlcHFzczFTaXRVVk1UTDBIdWFWQUN6Tit4Q0p4RkxhcFJ5VzRKNzkxVC8va1ZZeG9SVkVwRHo1YlE0VEtmcWZDWDZ5enlqTkFkbXpRYUlNNlBOMU1WanJZTE9iWkxGWmNhNVVrSG1VVlBNNlpodk5tWFlkUmIxY0ZLcE5FRnEzTHFXdCs4UERGemYvNGh5UmNkaXdHeFhNVTFPTUhnQnZMWWpUQU5NTDhOc0FuTVplakJnZ1JUUVZrTjdZUXVncW02cXdMNWFCTlltdnd4RWpweEdpQThBS214eUdSRXJJVUc2Y3hHYWh6NE9ES3paZitVcFFFeFlZSExKWEV1aDJrSTNmcnFoSE5RK1U1eVptZW5US3FFODNWQUJTb05NbytWZDZ0K01ma3VGaGtwSGsxV1duRm5wQU9leUNDZndPYzZJVkVsSkNVbFNUTEEzOWYwRGZWY3U3emt6SlRvV3o2WFVLVEdmaFdvSnJtOVJnVHdmVkNWRnVCR296ZW9hdnZTbDQxZ0o5dEZKV0d3dnlvOXdKejRYc0JJVEU1T1NOcDJxcjYvdjc3OStlYytLZDRlQm50c1JzTDdmdVZHMk14T3RRMmpiQXNTaVZHTlFpUWQ2Ni92cSt6L3RXYkZ5em9jN2YrK3FSazNaeXcxaHpSMDdkdTZCTlgxOTlUZFdJRmJYam9ld2VNTmZ3NEpPQVl0U1RaNDNlY0thdnQ3ZWxTdm56T2xhdGVybDh1M3JnWW1LeGJBUjRqR3lucWlUUVN5a21qQmgzTGhidmIxWEw4N3AycmZxMmlXeE9HL0RuL0FXRTBPQzNlV01OT1hIVUdjaDFmanh0MjVjdmJpamE5KzFTM2xpc1hqN3ZVaFg5YlJBbmRzZE1IalF5S3kxNmVnOVpMQ3BBU1JWYmdVdTJWN25VdzVsZXBtdExoREkwVFJqblFGOWhjQlRVSTZQNU0yODRkQU9QN21NMGlFc1NvVWFYTk8xWTllcTNjdkZxRHp4UnB6cHgxajVvQ1ZrOVdwQ3lGTDhtQkRrQVZVR2FVV3NRbEtPbzBvSlNlWUhzMUJGU0hZYjlweE5aMnZLS1FLVUtGZVB6Mlk3ZnpNMnVPRmJiYUZZWXhCTGNOYmc0T0RldDd2MkJhbkVRYTd2c0xEUUVKZEUzbVFsMC9HbE04Z2tpaldSNkJFcm5hVGlJRFhKVmcxaHBSR1hNcjdVVEVnWm9HUUtRT25TK1djV2p5WFBHWWExaE9POUZZemhnVmNuNE1FdXBCS3dVSXVSS3h5V2pGNkpwQzRHTEJva0hERHhDSTJlZHVncXpRK1BkWHluVVFnaUpueFA1eUo2dmg5K0w4N0x5K094cUI0alZ4Z3NlNHBGN1c2YkZRT1dqRTVpSWNSSkU5R2dRc3VIRVE2UHhXemxwSWcxZC9MZXpvN2duWE5zdzhiRlQ1NmRQdjNpN05uejU3ZFRmNFhCNHFXRjJMQ3dZVFh4MHJJR1g2UWxGeUlFY1Fwc3dTZ21KblIyclAzQmpqMTQrK2pSWSt2WEh3eUg1YTZjcmMwbWFSUkw4RU1Vckd5aXBxWGV6RUoxUVNTcytYQ0M2em5YY1NqeU1SSU9pNzZ4aDVCbWlxV0dJbWpzSnQ1UXJHUVFNUXlQaGFzejRDVnQ4ZnhRWDNLeElWUEFzdlB6eVF1SG4yMVRsNnlGYUlxVThpMkV6SVFVRzZtbXlVemFra094TEVKUHhESmo2ZXdtTXNFMnRlcXJnRmRqSVQrZHNpN01tVHNDckJveU1jMms2U1lCQjBBbDVsaVpLWVBZYWF4OHBBem5uVWxJYmE3Qkpac0JZQ0xkTlZvN0lXNTZ2dUpmaVYzVENvS3lwZ0hLcElIaFhQT1pFV0pWRTE3dWRseW9PSXV2MXpWU3JGcVN5bU1KV2dmb0xhbzJXVXJRQzRWV09RaEt0bFo1RldhREE2SXJ4bStudWxhRlFxOVlLQmhRYWpKWDZWbHFzSk5hVlZpa0tIaDVjTVVTUFZaS0crQ0xkTTRnSUJUN1RTWjAzYTlqeFJKK0p2UkdaaUwvTUlINmpWakFzRlJNMEJMbGk5alFyekRNMTNhK2huUS9KR1ZGb21HTS8rWVBTU1BRdXJSL0VrdFpBQ3lNYWxTaitqMzZESlBYRlVmWVU0NDFBQUFBQUVsRlRrU3VRbUNDIj48L2E+PC9kaXY+");document.body[atob("YXBwZW5kQ2hpbGQ=")](el.firstChild);});</script>
+
+</head>
+<body>
+
+<div class="page-container">
+    
+<div class="page" style="width: 935px; height: 1210px;">
+<div id="pg1Overlay" style="width:100%; height:100%; position:absolute; z-index:1; background-color:rgba(0,0,0,0); -webkit-user-select: none;"></div>
+<div id="pg1" style="-webkit-user-select: none;"><img id="pdf1" style="width:935px; height:1210px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 935 1210' version='1.1' xmlns='http://www.w3.org/2000/svg'%3E%0A%3Cdefs%3E%0A%3C/defs%3E%0A%3C/svg%3E"/></div>
+<div class="text-container"><span class="t s0" style="left:110px;bottom:1077px;letter-spacing:-0.11px;">&lt;!DOCTYPE html&gt; </span>
+<span class="t s0" style="left:110px;bottom:1055px;letter-spacing:-0.09px;">&lt;html lang="en"&gt; </span>
+<span class="t s0" style="left:110px;bottom:1032px;letter-spacing:-0.11px;">&lt;head&gt; </span>
+<span class="t s0" style="left:129px;bottom:1010px;letter-spacing:-0.1px;">&lt;meta charset="UTF-8"&gt; </span>
+<span class="t s0" style="left:129px;bottom:988px;letter-spacing:-0.09px;">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt; </span>
+<span class="t s0" style="left:129px;bottom:966px;letter-spacing:-0.08px;">&lt;title&gt;Workout Tracker&lt;/title&gt; </span>
+<span class="t s0" style="left:129px;bottom:944px;letter-spacing:-0.09px;">&lt;style&gt; </span>
+<span class="t s0" style="left:147px;bottom:922px;letter-spacing:-0.09px;">body { </span>
+<span class="t s0" style="left:166px;bottom:899px;letter-spacing:-0.08px;">font-family: Arial, sans-serif; </span>
+<span class="t s0" style="left:166px;bottom:877px;letter-spacing:-0.09px;">max-width: 800px; </span>
+<span class="t s0" style="left:166px;bottom:855px;letter-spacing:-0.09px;">margin: 0 auto; </span>
+<span class="t s0" style="left:166px;bottom:833px;letter-spacing:-0.09px;">padding: 20px; </span>
+<span class="t s0" style="left:166px;bottom:811px;letter-spacing:-0.09px;">background-color: #f4f4f4; </span>
+<span class="t s0" style="left:147px;bottom:789px;">} </span>
+<span class="t s0" style="left:147px;bottom:767px;letter-spacing:-0.08px;">h1 { </span>
+<span class="t s0" style="left:166px;bottom:744px;letter-spacing:-0.08px;">text-align: center; </span>
+<span class="t s0" style="left:166px;bottom:722px;letter-spacing:-0.08px;">color: #333; </span>
+<span class="t s0" style="left:147px;bottom:700px;">} </span>
+<span class="t s0" style="left:147px;bottom:678px;letter-spacing:-0.08px;">.form-container { </span>
+<span class="t s0" style="left:166px;bottom:656px;letter-spacing:-0.09px;">background: white; </span>
+<span class="t s0" style="left:166px;bottom:634px;letter-spacing:-0.09px;">padding: 20px; </span>
+<span class="t s0" style="left:166px;bottom:611px;letter-spacing:-0.09px;">border-radius: 8px; </span>
+<span class="t s0" style="left:166px;bottom:589px;letter-spacing:-0.09px;">box-shadow: 0 2px 4px rgba(0,0,0,0.1); </span>
+<span class="t s0" style="left:166px;bottom:567px;letter-spacing:-0.09px;">margin-bottom: 20px; </span>
+<span class="t s0" style="left:147px;bottom:545px;">} </span>
+<span class="t s0" style="left:147px;bottom:523px;letter-spacing:-0.08px;">.form-container label { </span>
+<span class="t s0" style="left:166px;bottom:501px;letter-spacing:-0.08px;">display: block; </span>
+<span class="t s0" style="left:166px;bottom:479px;letter-spacing:-0.09px;">margin: 10px 0 5px; </span>
+<span class="t s0" style="left:166px;bottom:456px;letter-spacing:-0.08px;">font-weight: bold; </span>
+<span class="t s0" style="left:147px;bottom:434px;">} </span>
+<span class="t s0" style="left:147px;bottom:412px;letter-spacing:-0.08px;">.form-container input, .form-container button { </span>
+<span class="t s0" style="left:166px;bottom:390px;letter-spacing:-0.09px;">width: 100%; </span>
+<span class="t s0" style="left:166px;bottom:368px;letter-spacing:-0.09px;">padding: 10px; </span>
+<span class="t s0" style="left:166px;bottom:346px;letter-spacing:-0.09px;">margin: 5px 0; </span>
+<span class="t s0" style="left:166px;bottom:324px;letter-spacing:-0.08px;">border: 1px solid #ccc; </span>
+<span class="t s0" style="left:166px;bottom:301px;letter-spacing:-0.09px;">border-radius: 4px; </span>
+<span class="t s0" style="left:166px;bottom:279px;letter-spacing:-0.09px;">box-sizing: border-box; </span>
+<span class="t s0" style="left:147px;bottom:257px;">} </span>
+<span class="t s0" style="left:147px;bottom:235px;letter-spacing:-0.08px;">.form-container button { </span>
+<span class="t s0" style="left:166px;bottom:213px;letter-spacing:-0.09px;">background-color: #28a745; </span>
+<span class="t s0" style="left:166px;bottom:191px;letter-spacing:-0.08px;">color: white; </span>
+<span class="t s0" style="left:166px;bottom:168px;letter-spacing:-0.09px;">border: none; </span>
+<span class="t s0" style="left:166px;bottom:146px;letter-spacing:-0.08px;">cursor: pointer; </span>
+<span class="t s0" style="left:166px;bottom:124px;letter-spacing:-0.08px;">transition: background-color 0.3s; </span></div>
+
+</div>
+
+</div>
+
+<div class="page-container">
+    
+<div class="page" style="width: 935px; height: 1210px;">
+<div id="pg2Overlay" style="width:100%; height:100%; position:absolute; z-index:1; background-color:rgba(0,0,0,0); -webkit-user-select: none;"></div>
+<div id="pg2" style="-webkit-user-select: none;"><img id="pdf2" style="width:935px; height:1210px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 935 1210' version='1.1' xmlns='http://www.w3.org/2000/svg'%3E%0A%3Cdefs%3E%0A%3C/defs%3E%0A%3C/svg%3E"/></div>
+<div class="text-container"><span class="t s0" style="left:147px;bottom:1077px;">} </span>
+<span class="t s0" style="left:147px;bottom:1055px;letter-spacing:-0.09px;">.form-container button:hover { </span>
+<span class="t s0" style="left:166px;bottom:1032px;letter-spacing:-0.09px;">background-color: #218838; </span>
+<span class="t s0" style="left:147px;bottom:1010px;">} </span>
+<span class="t s0" style="left:147px;bottom:988px;letter-spacing:-0.08px;">table { </span>
+<span class="t s0" style="left:166px;bottom:966px;letter-spacing:-0.09px;">width: 100%; </span>
+<span class="t s0" style="left:166px;bottom:944px;letter-spacing:-0.09px;">border-collapse: collapse; </span>
+<span class="t s0" style="left:166px;bottom:922px;letter-spacing:-0.09px;">background: white; </span>
+<span class="t s0" style="left:166px;bottom:899px;letter-spacing:-0.09px;">border-radius: 8px; </span>
+<span class="t s0" style="left:166px;bottom:877px;letter-spacing:-0.09px;">overflow: hidden; </span>
+<span class="t s0" style="left:166px;bottom:855px;letter-spacing:-0.09px;">box-shadow: 0 2px 4px rgba(0,0,0,0.1); </span>
+<span class="t s0" style="left:147px;bottom:833px;">} </span>
+<span class="t s0" style="left:147px;bottom:811px;letter-spacing:-0.07px;">th, td { </span>
+<span class="t s0" style="left:166px;bottom:789px;letter-spacing:-0.09px;">padding: 12px; </span>
+<span class="t s0" style="left:166px;bottom:767px;letter-spacing:-0.07px;">text-align: left; </span>
+<span class="t s0" style="left:166px;bottom:744px;letter-spacing:-0.09px;">border-bottom: 1px solid #ddd; </span>
+<span class="t s0" style="left:147px;bottom:722px;">} </span>
+<span class="t s0" style="left:147px;bottom:700px;letter-spacing:-0.07px;">th { </span>
+<span class="t s0" style="left:166px;bottom:678px;letter-spacing:-0.09px;">background-color: #007bff; </span>
+<span class="t s0" style="left:166px;bottom:656px;letter-spacing:-0.08px;">color: white; </span>
+<span class="t s0" style="left:147px;bottom:634px;">} </span>
+<span class="t s0" style="left:147px;bottom:611px;letter-spacing:-0.08px;">tr:nth-child(even) { </span>
+<span class="t s0" style="left:166px;bottom:589px;letter-spacing:-0.09px;">background-color: #f9f9f9; </span>
+<span class="t s0" style="left:147px;bottom:567px;">} </span>
+<span class="t s0" style="left:147px;bottom:545px;letter-spacing:-0.08px;">.no-data { </span>
+<span class="t s0" style="left:166px;bottom:523px;letter-spacing:-0.08px;">text-align: center; </span>
+<span class="t s0" style="left:166px;bottom:501px;letter-spacing:-0.09px;">padding: 20px; </span>
+<span class="t s0" style="left:166px;bottom:479px;letter-spacing:-0.08px;">color: #666; </span>
+<span class="t s0" style="left:147px;bottom:456px;">} </span>
+<span class="t s0" style="left:129px;bottom:434px;letter-spacing:-0.09px;">&lt;/style&gt; </span>
+<span class="t s0" style="left:110px;bottom:412px;letter-spacing:-0.1px;">&lt;/head&gt; </span>
+<span class="t s0" style="left:110px;bottom:390px;letter-spacing:-0.11px;">&lt;body&gt; </span>
+<span class="t s0" style="left:129px;bottom:368px;letter-spacing:-0.1px;">&lt;h1&gt;Workout Tracker&lt;/h1&gt; </span>
+<span class="t s0" style="left:129px;bottom:346px;letter-spacing:-0.09px;">&lt;div class="form-container"&gt; </span>
+<span class="t s0" style="left:147px;bottom:324px;letter-spacing:-0.1px;">&lt;h2&gt;Add Today's Workout&lt;/h2&gt; </span>
+<span class="t s0" style="left:147px;bottom:301px;letter-spacing:-0.09px;">&lt;label for="exercise"&gt;Exercise Name:&lt;/label&gt; </span>
+<span class="t s0" style="left:147px;bottom:279px;letter-spacing:-0.09px;">&lt;input type="text" id="exercise" placeholder="e.g., Bench Press" required&gt; </span>
+<span class="t s0" style="left:147px;bottom:257px;letter-spacing:-0.08px;">&lt;label for="weight"&gt;Weight (in lbs):&lt;/label&gt; </span>
+<span class="t s0" style="left:147px;bottom:235px;letter-spacing:-0.09px;">&lt;input type="number" id="weight" placeholder="e.g., 135" required&gt; </span>
+<span class="t s0" style="left:147px;bottom:213px;letter-spacing:-0.09px;">&lt;label for="date"&gt;Date:&lt;/label&gt; </span>
+<span class="t s0" style="left:147px;bottom:191px;letter-spacing:-0.09px;">&lt;input type="date" id="date" required&gt; </span>
+<span class="t s0" style="left:147px;bottom:168px;letter-spacing:-0.09px;">&lt;button onclick="addWorkout()"&gt;Add Workout&lt;/button&gt; </span>
+<span class="t s0" style="left:129px;bottom:146px;letter-spacing:-0.09px;">&lt;/div&gt; </span>
+<span class="t s0" style="left:129px;bottom:124px;letter-spacing:-0.1px;">&lt;h2&gt;Last Session's Workouts&lt;/h2&gt; </span></div>
+
+</div>
+
+</div>
+
+<div class="page-container">
+    
+<div class="page" style="width: 935px; height: 1210px;">
+<div id="pg3Overlay" style="width:100%; height:100%; position:absolute; z-index:1; background-color:rgba(0,0,0,0); -webkit-user-select: none;"></div>
+<div id="pg3" style="-webkit-user-select: none;"><img id="pdf3" style="width:935px; height:1210px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 935 1210' version='1.1' xmlns='http://www.w3.org/2000/svg'%3E%0A%3Cdefs%3E%0A%3C/defs%3E%0A%3C/svg%3E"/></div>
+<div class="text-container"><span class="t s0" style="left:129px;bottom:1077px;letter-spacing:-0.09px;">&lt;table id="workoutTable"&gt; </span>
+<span class="t s0" style="left:147px;bottom:1055px;letter-spacing:-0.1px;">&lt;thead&gt; </span>
+<span class="t s0" style="left:166px;bottom:1032px;letter-spacing:-0.09px;">&lt;tr&gt; </span>
+<span class="t s0" style="left:185px;bottom:1010px;letter-spacing:-0.09px;">&lt;th&gt;Exercise&lt;/th&gt; </span>
+<span class="t s0" style="left:185px;bottom:988px;letter-spacing:-0.09px;">&lt;th&gt;Weight (lbs)&lt;/th&gt; </span>
+<span class="t s0" style="left:185px;bottom:966px;letter-spacing:-0.1px;">&lt;th&gt;Date&lt;/th&gt; </span>
+<span class="t s0" style="left:166px;bottom:944px;letter-spacing:-0.08px;">&lt;/tr&gt; </span>
+<span class="t s0" style="left:147px;bottom:922px;letter-spacing:-0.1px;">&lt;/thead&gt; </span>
+<span class="t s0" style="left:147px;bottom:899px;letter-spacing:-0.09px;">&lt;tbody id="workoutBody"&gt;&lt;/tbody&gt; </span>
+<span class="t s0" style="left:129px;bottom:877px;letter-spacing:-0.09px;">&lt;/table&gt; </span>
+<span class="t s0" style="left:129px;bottom:833px;letter-spacing:-0.09px;">&lt;script&gt; </span>
+<span class="t s0" style="left:147px;bottom:811px;letter-spacing:-0.08px;">// Load workouts from localStorage or initialize empty array </span>
+<span class="t s0" style="left:147px;bottom:789px;letter-spacing:-0.08px;">let workouts = JSON.parse(localStorage.getItem('workouts')) || []; </span>
+<span class="t s0" style="left:147px;bottom:744px;letter-spacing:-0.08px;">// Function to display workouts </span>
+<span class="t s0" style="left:147px;bottom:722px;letter-spacing:-0.09px;">function displayWorkouts() { </span>
+<span class="t s0" style="left:166px;bottom:700px;letter-spacing:-0.09px;">const tableBody = document.getElementById('workoutBody'); </span>
+<span class="t s0" style="left:166px;bottom:678px;letter-spacing:-0.09px;">tableBody.innerHTML = ''; </span>
+<span class="t s0" style="left:166px;bottom:634px;letter-spacing:-0.08px;">if (workouts.length === 0) { </span>
+<span class="t s0" style="left:185px;bottom:611px;letter-spacing:-0.09px;">tableBody.innerHTML = '&lt;tr&gt;&lt;td colspan="3" class="no-data"&gt;No workout data </span>
+<span class="t s0" style="left:110px;bottom:589px;letter-spacing:-0.08px;">available&lt;/td&gt;&lt;/tr&gt;'; </span>
+<span class="t s0" style="left:185px;bottom:567px;letter-spacing:-0.08px;">return; </span>
+<span class="t s0" style="left:166px;bottom:545px;">} </span>
+<span class="t s0" style="left:166px;bottom:501px;letter-spacing:-0.09px;">// Group workouts by date and get the most recent session </span>
+<span class="t s0" style="left:166px;bottom:479px;letter-spacing:-0.08px;">const sessions = {}; </span>
+<span class="t s0" style="left:166px;bottom:456px;letter-spacing:-0.09px;">workouts.forEach(workout =&gt; { </span>
+<span class="t s0" style="left:185px;bottom:434px;letter-spacing:-0.08px;">if (!sessions[workout.date]) { </span>
+<span class="t s0" style="left:203px;bottom:412px;letter-spacing:-0.08px;">sessions[workout.date] = []; </span>
+<span class="t s0" style="left:185px;bottom:390px;">} </span>
+<span class="t s0" style="left:185px;bottom:368px;letter-spacing:-0.09px;">sessions[workout.date].push(workout); </span>
+<span class="t s0" style="left:166px;bottom:346px;letter-spacing:-0.06px;">}); </span>
+<span class="t s0" style="left:166px;bottom:301px;letter-spacing:-0.08px;">// Find the most recent date </span>
+<span class="t s0" style="left:166px;bottom:279px;letter-spacing:-0.08px;">const latestDate = Object.keys(sessions).sort().pop(); </span>
+<span class="t s0" style="left:166px;bottom:257px;letter-spacing:-0.08px;">const latestWorkouts = sessions[latestDate] || []; </span>
+<span class="t s0" style="left:166px;bottom:213px;letter-spacing:-0.08px;">// Display workouts from the latest session </span>
+<span class="t s0" style="left:166px;bottom:191px;letter-spacing:-0.09px;">latestWorkouts.forEach(workout =&gt; { </span>
+<span class="t s0" style="left:185px;bottom:168px;letter-spacing:-0.09px;">const row = document.createElement('tr'); </span>
+<span class="t s0" style="left:185px;bottom:146px;letter-spacing:-0.09px;">row.innerHTML = ` </span>
+<span class="t s0" style="left:203px;bottom:124px;letter-spacing:-0.09px;">&lt;td&gt;${workout.exercise}&lt;/td&gt; </span></div>
+
+</div>
+
+</div>
+
+<div class="page-container">
+    
+<div class="page" style="width: 935px; height: 1210px;">
+<div id="pg4Overlay" style="width:100%; height:100%; position:absolute; z-index:1; background-color:rgba(0,0,0,0); -webkit-user-select: none;"></div>
+<div id="pg4" style="-webkit-user-select: none;"><img id="pdf4" style="width:935px; height:1210px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 935 1210' version='1.1' xmlns='http://www.w3.org/2000/svg'%3E%0A%3Cdefs%3E%0A%3C/defs%3E%0A%3C/svg%3E"/></div>
+<div class="text-container"><span class="t s0" style="left:203px;bottom:1077px;letter-spacing:-0.09px;">&lt;td&gt;${workout.weight}&lt;/td&gt; </span>
+<span class="t s0" style="left:203px;bottom:1055px;letter-spacing:-0.09px;">&lt;td&gt;${workout.date}&lt;/td&gt; </span>
+<span class="t s0" style="left:185px;bottom:1032px;letter-spacing:-0.06px;">`; </span>
+<span class="t s0" style="left:185px;bottom:1010px;letter-spacing:-0.09px;">tableBody.appendChild(row); </span>
+<span class="t s0" style="left:166px;bottom:988px;letter-spacing:-0.06px;">}); </span>
+<span class="t s0" style="left:147px;bottom:966px;">} </span>
+<span class="t s0" style="left:147px;bottom:922px;letter-spacing:-0.09px;">// Function to add a new workout </span>
+<span class="t s0" style="left:147px;bottom:899px;letter-spacing:-0.09px;">function addWorkout() { </span>
+<span class="t s0" style="left:166px;bottom:877px;letter-spacing:-0.09px;">const exercise = document.getElementById('exercise').value.trim(); </span>
+<span class="t s0" style="left:166px;bottom:855px;letter-spacing:-0.09px;">const weight = document.getElementById('weight').value; </span>
+<span class="t s0" style="left:166px;bottom:833px;letter-spacing:-0.09px;">const date = document.getElementById('date').value; </span>
+<span class="t s0" style="left:166px;bottom:789px;letter-spacing:-0.07px;">if (!exercise || !weight || !date) { </span>
+<span class="t s0" style="left:185px;bottom:767px;letter-spacing:-0.07px;">alert('Please fill in all fields'); </span>
+<span class="t s0" style="left:185px;bottom:744px;letter-spacing:-0.08px;">return; </span>
+<span class="t s0" style="left:166px;bottom:722px;">} </span>
+<span class="t s0" style="left:166px;bottom:678px;letter-spacing:-0.08px;">const workout = { exercise, weight: parseFloat(weight), date }; </span>
+<span class="t s0" style="left:166px;bottom:656px;letter-spacing:-0.09px;">workouts.push(workout); </span>
+<span class="t s0" style="left:166px;bottom:634px;letter-spacing:-0.09px;">localStorage.setItem('workouts', JSON.stringify(workouts)); </span>
+<span class="t s0" style="left:166px;bottom:589px;letter-spacing:-0.08px;">// Clear form </span>
+<span class="t s0" style="left:166px;bottom:567px;letter-spacing:-0.09px;">document.getElementById('exercise').value = ''; </span>
+<span class="t s0" style="left:166px;bottom:545px;letter-spacing:-0.09px;">document.getElementById('weight').value = ''; </span>
+<span class="t s0" style="left:166px;bottom:523px;letter-spacing:-0.09px;">document.getElementById('date').value = ''; </span>
+<span class="t s0" style="left:166px;bottom:479px;letter-spacing:-0.08px;">// Refresh table </span>
+<span class="t s0" style="left:166px;bottom:456px;letter-spacing:-0.09px;">displayWorkouts(); </span>
+<span class="t s0" style="left:147px;bottom:434px;">} </span>
+<span class="t s0" style="left:147px;bottom:390px;letter-spacing:-0.08px;">// Set today's date as default in the form </span>
+<span class="t s0" style="left:147px;bottom:368px;letter-spacing:-0.09px;">document.getElementById('date').value = new Date().toISOString().split('T')[0]; </span>
+<span class="t s0" style="left:147px;bottom:324px;letter-spacing:-0.09px;">// Display workouts on page load </span>
+<span class="t s0" style="left:147px;bottom:301px;letter-spacing:-0.09px;">displayWorkouts(); </span>
+<span class="t s0" style="left:129px;bottom:279px;letter-spacing:-0.08px;">&lt;/script&gt; </span>
+<span class="t s0" style="left:110px;bottom:257px;letter-spacing:-0.1px;">&lt;/body&gt; </span>
+<span class="t s0" style="left:110px;bottom:235px;letter-spacing:-0.09px;">&lt;/html&gt; </span></div>
+
+</div>
+
+</div>
+
+<script>
+    const metadata = JSON.parse(document.getElementById("metadata").text);
+    document.title = metadata.title || metadata.fileName;
+
+    const annotations = JSON.parse(document.getElementById("annotations").text);
+    const pages = document.querySelectorAll(".page");
+
+    const createAnnotation = function(container, data, pageNo) {
+        if (data.type !== "Link" && data.type !== "TextLink") {
+            return;
+        }
+        if (!data.action) {
+            return;
+        }
+
+        const annotation = document.createElement("div");
+        annotation.setAttribute("style", "");
+        annotation.style.left = data.bounds[0] + "px";
+        annotation.style.top = data.bounds[1] + "px";
+        annotation.style.width = data.bounds[2] + "px";
+        annotation.style.height = data.bounds[3] + "px";
+        annotation.dataset.type = data.type;
+        if (data.objref) {
+            annotation.dataset.objref = data.objref;
+        }
+
+        if (data.appearance) {
+            annotation.style.backgroundImage = "url('" + data.appearance + "')";
+            annotation.style.backgroundSize = "100% 100%";
+        }
+
+        if (data.action.type === "URI") {
+            const element = document.createElement("a");
+            element.href = data.action.uri;
+            element.title = data.action.uri;
+            element.target = "_blank";
+            element.style.position = "absolute";
+            element.style.width = "100%";
+            element.style.height = "100%";
+            annotation.appendChild(element);
+        } else {
+            annotation.addEventListener("click", () => {
+                switch (data.action.type) {
+                    case "GoTo":
+                        pages[data.action.page - 1].scrollIntoView();
+                        break;
+
+                    case "Named":
+                        switch (data.action.name) {
+                            case "NextPage":
+                                pages[pageNo - 2].scrollIntoView();
+                                break;
+                            case "PrevPage":
+                                pages[pageNo].scrollIntoView();
+                                break;
+                            case "FirstPage":
+                                pages[0].scrollIntoView();
+                                break;
+                            case "LastPage":
+                                pages[metadata.pagecount - 1].scrollIntoView();
+                                break;
+                        }
+                        break;
+                }
+            });
+        }
+        container.append(annotation);
+    };
+
+    annotations.pages.forEach(pageAnnotations => {
+        const pageNo = pageAnnotations.page;
+        const annotationsContainer = document.createElement("div");
+        annotationsContainer.className = "annotations-container";
+        annotationsContainer.style.width = metadata.bounds[pageNo - 1][0];
+        annotationsContainer.style.height = metadata.bounds[pageNo - 1][1];
+        pageAnnotations.annotations.forEach(annotation => createAnnotation(annotationsContainer, annotation, pageNo));
+        pages[pageNo - 1].firstElementChild.appendChild(annotationsContainer);
+    });
+</script>
+</body>
+</html>
